@@ -1,4 +1,4 @@
-import { createPaidMcpHandler } from "@vercel/x402";
+import { createPaidMcpHandler } from "x402-mcp";
 import z from "zod";
 import { facilitator } from "@coinbase/x402";
 

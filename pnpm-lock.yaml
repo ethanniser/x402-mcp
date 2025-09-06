@@ -59,9 +59,6 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
-      '@vercel/x402':
-        specifier: workspace:*
-        version: link:../../packages/x402
       ai:
         specifier: ^5.0.26
         version: 5.0.33(zod@3.25.76)
@@ -101,6 +98,9 @@ importers:
       viem:
         specifier: ^2.36.0
         version: 2.37.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
+      x402-mcp:
+        specifier: workspace:*
+        version: link:../../packages/x402-mcp
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -133,7 +133,7 @@ importers:
         specifier: ^5
         version: 5.9.2
 
-  packages/x402:
+  packages/x402-mcp:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.5
