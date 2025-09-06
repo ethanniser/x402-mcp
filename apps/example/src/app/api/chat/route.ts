@@ -16,11 +16,7 @@ const url = new URL(
 );
 
 export const POST = async (request: Request) => {
-  const {
-    messages,
-    model,
-    paymentEnabled,
-  }: { messages: UIMessage[]; model: string; paymentEnabled: boolean } =
+  const { messages, model }: { messages: UIMessage[]; model: string } =
     await request.json();
 
   const mcpClient = await createMCPClient({

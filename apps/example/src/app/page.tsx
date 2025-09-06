@@ -36,7 +36,6 @@ import {
   ToolInput,
   ToolOutput,
 } from "@/components/ai-elements/tool";
-import { CircleDollarSign } from "lucide-react";
 
 const models = [
   {
@@ -51,7 +50,6 @@ const models = [
 
 const ChatBotDemo = () => {
   const [input, setInput] = useState("");
-  const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [model, setModel] = useState<string>(models[0].value);
   const { messages, sendMessage, status } = useChat();
 
@@ -63,7 +61,6 @@ const ChatBotDemo = () => {
         {
           body: {
             model: model,
-            paymentEnabled,
           },
         }
       );
@@ -139,13 +136,6 @@ const ChatBotDemo = () => {
           />
           <PromptInputToolbar>
             <PromptInputTools>
-              <PromptInputButton
-                variant={paymentEnabled ? "default" : "ghost"}
-                onClick={() => setPaymentEnabled(!paymentEnabled)}
-              >
-                <CircleDollarSign size={16} />
-                <span>Payment</span>
-              </PromptInputButton>
               <PromptInputModelSelect
                 onValueChange={(value) => {
                   setModel(value);
