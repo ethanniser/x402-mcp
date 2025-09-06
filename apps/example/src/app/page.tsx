@@ -65,11 +65,13 @@ const ChatBotDemo = () => {
             model: model,
             paymentEnabled,
           },
-        },
+        }
       );
       setInput("");
     }
   };
+
+  console.log(messages);
 
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">

@@ -38,7 +38,7 @@ const handler = createPaidMcpHandler(
       }
     );
     server.tool(
-      "hello",
+      "hello-remote",
       "Receive a greeting",
       {
         name: z.string(),

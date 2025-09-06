@@ -97,7 +97,16 @@ export async function withPayment(
         throw new Error("Unsupported payment network");
       }
 
-      const account = privateKeyToAccount(`0x${process.env.X402_PRIVATE_KEY}`);
+      if (!options.privateKey) {
+        throw new Error("Private key is required for payment authorization");
+      }
+
+      // Ensure private key is properly formatted (with 0x prefix)
+      const formattedPrivateKey = options.privateKey.startsWith("0x")
+        ? options.privateKey
+        : `0x${options.privateKey}`;
+
+      const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`);
       const walletClient = createWalletClient({
         account,
         transport: http(),
@@ -115,14 +124,17 @@ export async function withPayment(
     },
   });
 
+  // Store reference to original tools method before overriding it
+  const originalToolsMethod = client.tools.bind(client);
+
   const wrappedTools: MCPClient["tools"] = async (options) => {
-    // Get the original tools from the wrapped client
-    const originalTools = await client.tools(options);
-    const wrappedTools: Record<string, Tool> = {};
+    // Get the original tools from the wrapped client using the stored reference
+    const originalTools = await originalToolsMethod(options);
+    const wrappedToolsMap: Record<string, Tool> = {};
 
     // Wrap each tool to add payment support
     for (const [name, tool] of Object.entries(originalTools)) {
-      wrappedTools[name] = {
+      wrappedToolsMap[name] = {
         ...tool,
         // @ts-expect-error
         inputSchema: {
@@ -169,11 +181,12 @@ export async function withPayment(
       };
     }
 
-    return wrappedTools as any;
+    return {
+      ...wrappedToolsMap,
+      generatePaymentAuthorization: generatePaymentAuthorizationTool,
+    } as any;
   };
 
-  return {
-    tools: wrappedTools,
-    close: client.close,
-  };
+  client.tools = wrappedTools;
+  return client;
 }

@@ -5,6 +5,8 @@ export const maxDuration = 30;
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { experimental_createMCPClient as createMCPClient } from "ai";
 import { withPayment } from "x402-mcp";
+import { tool } from "ai";
+import z from "zod";
 
 const url = new URL(
   "/mcp",
@@ -30,7 +32,18 @@ export const POST = async (request: Request) => {
 
   const result = streamText({
     model,
-    tools,
+    tools: {
+      ...tools,
+      "hello-local": tool({
+        description: "Receive a greeting",
+        inputSchema: z.object({
+          name: z.string(),
+        }),
+        execute: async (args) => {
+          return `Hello ${args.name}`;
+        },
+      }),
+    },
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
     onFinish: async () => {
