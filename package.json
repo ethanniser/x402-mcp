@@ -1,10 +1,11 @@
 {
-  "name": "x402",
+  "name": "x402-mcp-root",
   "private": true,
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

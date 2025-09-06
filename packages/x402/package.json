@@ -1,5 +1,5 @@
 {
-  "name": "@vercel/x402",
+  "name": "x402-mcp",
   "version": "0.0.0",
   "type": "module",
   "exports": {
