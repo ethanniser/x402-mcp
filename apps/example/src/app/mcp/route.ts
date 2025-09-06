@@ -7,7 +7,7 @@ const handler = createPaidMcpHandler(
     server.paidTool(
       "get_random_number",
       "Get a random number between two numbers",
-      { price: 0.01 },
+      { price: 0.001 },
       {
         min: z.number().int(),
         max: z.number().int(),
