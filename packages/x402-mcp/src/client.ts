@@ -132,8 +132,6 @@ export async function withPayment(
         chain: network === "base-sepolia" ? baseSepolia : base,
       });
 
-      console.log("hi", input.paymentRequirements);
-
       const paymentHeader = await createPaymentHeader(
         walletClient as unknown as Wallet, // dont know why this is needed
         x402Version,

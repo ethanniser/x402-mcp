@@ -43,7 +43,6 @@ const handler = createPaidMcpHandler(
       {
         name: z.string(),
       },
-      {},
       async (args) => {
         return { content: [{ type: "text", text: `Hello ${args.name}` }] };
       }

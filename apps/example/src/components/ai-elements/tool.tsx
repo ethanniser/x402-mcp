@@ -155,11 +155,16 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
         )}
       >
         {errorText && <div>{errorText}</div>}
-        {renderResult.type === "success"
-          ? renderResult.content
-          : renderResult.type === "non-dynamic-tool"
-            ? JSON.stringify(renderResult.content)
-            : null}
+        {renderResult.type === "success" ? (
+          renderResult.content
+        ) : renderResult.type === "non-dynamic-tool" ? (
+          JSON.stringify(renderResult.content)
+        ) : renderResult.type === "failed-to-parse" ? (
+          <CodeBlock
+            code={JSON.stringify(renderResult.content, null, 2)}
+            language="json"
+          />
+        ) : null}
       </div>
       {/* @ts-expect-error */}
       {part.output?._meta?.["x402.payment-response"] && (
@@ -227,7 +232,6 @@ function renderRawOutput({
 }): RenderOutputResult {
   const parseResult = ToolOutputSchema.safeParse(output);
   if (!parseResult.success) {
-    console.error(parseResult.error);
     return {
       type: "failed-to-parse",
       content: output,
