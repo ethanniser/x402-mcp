@@ -1,11 +1,63 @@
+import { z, ZodType } from "zod";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { createPaymentHeader } from "x402/client";
 import { PaymentRequirementsSchema, Wallet } from "x402/types";
 import { x402Version, network } from "./shared.js";
-import { Tool, experimental_MCPClient as MCPClient, tool } from "ai";
-import z from "zod";
+import {
+  Tool,
+  ToolCallOptions,
+  experimental_MCPClient as MCPClient,
+  tool,
+} from "ai";
+import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
+
+interface MCPClientInternal extends MCPClient {
+  // Private methods
+  request: <T extends ZodType<object>>(params: {
+    request: any;
+    resultSchema: T;
+    options?: any;
+  }) => Promise<z.infer<T>>;
+  assertCapability: (method: string) => void;
+  isClosed: boolean;
+}
+
+async function callToolWithPayment(
+  client: MCPClientInternal,
+  name: string,
+  args: Record<string, unknown>,
+  paymentAuthorization: string,
+  options?: ToolCallOptions
+) {
+  // Access private methods
+  const request = client.request.bind(client);
+  const assertCapability = client.assertCapability.bind(client);
+
+  if (client.isClosed) {
+    throw new Error("Attempted to send a request from a closed client");
+  }
+
+  assertCapability("tools/call");
+
+  return request({
+    request: {
+      method: "tools/call",
+      params: {
+        name,
+        arguments: args,
+        _meta: {
+          "x402.payment": paymentAuthorization,
+        },
+      },
+    },
+    resultSchema: CallToolResultSchema,
+    options: {
+      signal: options?.abortSignal,
+    },
+  });
+}
 
 export interface ClientPaymentOptions {
   privateKey: string;
@@ -16,6 +68,7 @@ export async function withPayment(
   mcpClient: MCPClient,
   options: ClientPaymentOptions
 ): Promise<MCPClient> {
+  const client = mcpClient as MCPClientInternal;
   const maxPaymentValue = options.maxPaymentValue ?? BigInt(0.1 * 10 ** 6); // 0.10 USDC
   const generatePaymentAuthorizationTool = tool({
     description:
@@ -61,5 +114,66 @@ export async function withPayment(
       };
     },
   });
-  return mcpClient;
+
+  const wrappedTools: MCPClient["tools"] = async (options) => {
+    // Get the original tools from the wrapped client
+    const originalTools = await client.tools(options);
+    const wrappedTools: Record<string, Tool> = {};
+
+    // Wrap each tool to add payment support
+    for (const [name, tool] of Object.entries(originalTools)) {
+      wrappedTools[name] = {
+        ...tool,
+        // @ts-expect-error
+        inputSchema: {
+          ...tool.inputSchema,
+          jsonSchema: {
+            // @ts-expect-error
+            ...tool.inputSchema.jsonSchema,
+            properties: {
+              // @ts-expect-error
+              ...tool.inputSchema.jsonSchema.properties,
+              paymentAuthorization: {
+                type: "string",
+                description:
+                  "X402Payment authorization, this is optional and should *not* be provided by default. It is only required if the tool requires payment, which can be determined by calling it without this parameter.",
+                optional: true,
+              },
+            },
+          },
+        },
+        execute: async (
+          args: Record<string, unknown> & { paymentAuthorization?: string },
+          toolOptions: ToolCallOptions
+        ) => {
+          // Extract paymentAuthorization from args
+          const { paymentAuthorization, ...toolArgs } = args;
+
+          if (paymentAuthorization) {
+            // Create a custom callTool request that includes _meta
+            return callToolWithPayment(
+              client,
+              name,
+              toolArgs,
+              paymentAuthorization,
+              toolOptions
+            );
+          } else {
+            // Call the original execute function without payment
+            if (!tool.execute) {
+              throw new Error(`Tool ${name} does not have an execute function`);
+            }
+            return tool.execute(toolArgs, toolOptions);
+          }
+        },
+      };
+    }
+
+    return wrappedTools as any;
+  };
+
+  return {
+    tools: wrappedTools,
+    close: client.close,
+  };
 }

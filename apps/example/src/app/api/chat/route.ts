@@ -4,12 +4,13 @@ export const maxDuration = 30;
 
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { experimental_createMCPClient as createMCPClient } from "ai";
+import { withPayment } from "x402-mcp";
 
 const url = new URL(
   "/mcp",
   process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000",
+    : "http://localhost:3000"
 );
 
 export const POST = async (request: Request) => {
@@ -22,7 +23,9 @@ export const POST = async (request: Request) => {
 
   const mcpClient = await createMCPClient({
     transport: new StreamableHTTPClientTransport(url),
-  });
+  }).then((client) =>
+    withPayment(client, { privateKey: process.env.X402_PRIVATE_KEY as string })
+  );
   const tools = await mcpClient.tools();
 
   const result = streamText({
