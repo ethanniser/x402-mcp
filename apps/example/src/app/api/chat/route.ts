@@ -49,6 +49,7 @@ export const POST = async (request: Request) => {
     onFinish: async () => {
       await mcpClient.close();
     },
+    system: "ALWAYS prompt the user to confirm before authorizing payments",
   });
   return result.toUIMessageStreamResponse({
     sendSources: true,
