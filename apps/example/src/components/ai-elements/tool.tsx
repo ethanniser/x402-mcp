@@ -61,7 +61,7 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 };
 
 const mapRenderResultTypeToState = (
-  type: RenderOutputResult["type"],
+  type: RenderOutputResult["type"]
 ): ToolUIPart["state"] => {
   if (type === "success") return "output-available";
   if (type === "error") return "output-error";
@@ -72,7 +72,7 @@ export const ToolHeader = ({ className, part, ...props }: ToolHeaderProps) => {
   const { state: rawState } = part;
   const renderResult = renderRawOutput({ output: part.output });
   const state =
-    rawState === "output-available"
+    rawState === "output-available" && part.type === "dynamic-tool"
       ? mapRenderResultTypeToState(renderResult.type)
       : rawState;
 
@@ -83,7 +83,7 @@ export const ToolHeader = ({ className, part, ...props }: ToolHeaderProps) => {
     <CollapsibleTrigger
       className={cn(
         "flex w-full items-center justify-between gap-4 p-3",
-        className,
+        className
       )}
       {...props}
     >
@@ -103,7 +103,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
       "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
-      className,
+      className
     )}
     {...props}
   />
@@ -129,7 +129,10 @@ export type ToolOutputProps = ComponentProps<"div"> & {
 };
 
 export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
-  const renderResult = renderRawOutput({ output: part.output });
+  const renderResult =
+    part.type === "dynamic-tool"
+      ? renderRawOutput({ output: part.output })
+      : ({ type: "non-dynamic-tool", content: part.output } as const);
   const errorText = part.errorText
     ? part.errorText
     : renderResult.type === "error"
@@ -148,14 +151,18 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
       <div
         className={cn(
           "overflow-x-auto rounded-md text-xs [&_table]:w-full",
-          errorText ? "text-destructive" : "bg-muted/50 text-foreground",
+          errorText ? "text-destructive" : "bg-muted/50 text-foreground"
         )}
       >
         {errorText && <div>{errorText}</div>}
-        {renderResult.type === "success" ? renderResult.content : null}
+        {renderResult.type === "success"
+          ? renderResult.content
+          : renderResult.type === "non-dynamic-tool"
+            ? JSON.stringify(renderResult.content)
+            : null}
       </div>
       {/* @ts-expect-error */}
-      {part.output?.paymentInfo && (
+      {part.output?._meta?.["x402.payment-response"] && (
         <>
           <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
             <i>x402</i> Payment
@@ -167,18 +174,18 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
                   ? "sepolia."
                   : ""
                 // @ts-expect-error
-              }basescan.org/tx/${part.output.paymentInfo.transaction}`}
+              }basescan.org/tx/${part.output._meta["x402.payment-response"].transaction}`}
               target="_blank"
               className="hover:underline"
             >
               <div className="overflow-x-auto rounded-md text-xs [&_table]:w-full">
                 {/* @ts-expect-error */}
-                {part.output.paymentInfo.transaction}{" "}
+                {part.output._meta["x402.payment-response"].transaction}{" "}
               </div>
             </Link>
             <CopyToClipboardButton
               // @ts-expect-error
-              content={part.output.paymentInfo.transaction}
+              content={part.output._meta["x402.payment-response"].transaction}
             />
           </div>
         </>
@@ -193,7 +200,7 @@ const ToolOutputSchema = z
       z.object({
         type: z.literal("text"),
         text: z.string(),
-      }),
+      })
     ),
     isError: z.boolean().optional(),
   })

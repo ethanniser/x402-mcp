@@ -82,37 +82,41 @@ const ChatBotDemo = () => {
               <Message from={message.role} key={message.id}>
                 <MessageContent>
                   {message.parts.map((part, i) => {
-                    switch (part.type) {
-                      case "text":
-                        return (
-                          <Response key={`${message.id}-${i}`}>
-                            {part.text}
-                          </Response>
-                        );
-                      case "reasoning":
-                        return (
-                          <Reasoning
-                            key={`${message.id}-${i}`}
-                            className="w-full"
-                            isStreaming={status === "streaming"}
-                          >
-                            <ReasoningTrigger />
-                            <ReasoningContent>{part.text}</ReasoningContent>
-                          </Reasoning>
-                        );
-                      case "dynamic-tool":
-                        return (
-                          <Tool defaultOpen={true} key={`${message.id}-${i}`}>
-                            <ToolHeader part={part} />
-                            <ToolContent>
-                              <ToolInput input={part.input} />
-                              {/* @ts-expect-error */}
-                              <ToolOutput part={part} />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      default:
-                        return null;
+                    if (part.type === "text") {
+                      return (
+                        <Response key={`${message.id}-${i}`}>
+                          {part.text}
+                        </Response>
+                      );
+                    } else if (part.type === "reasoning") {
+                      return (
+                        <Reasoning
+                          key={`${message.id}-${i}`}
+                          className="w-full"
+                          isStreaming={status === "streaming"}
+                        >
+                          <ReasoningTrigger />
+                          <ReasoningContent>{part.text}</ReasoningContent>
+                        </Reasoning>
+                      );
+                    } else if (
+                      part.type === "dynamic-tool" ||
+                      part.type.startsWith("tool-")
+                    ) {
+                      return (
+                        <Tool defaultOpen={true} key={`${message.id}-${i}`}>
+                          {/* @ts-expect-error */}
+                          <ToolHeader part={part} />
+                          <ToolContent>
+                            {/* @ts-expect-error */}
+                            <ToolInput input={part.input} />
+                            {/* @ts-expect-error */}
+                            <ToolOutput part={part} />
+                          </ToolContent>
+                        </Tool>
+                      );
+                    } else {
+                      return null;
                     }
                   })}
                 </MessageContent>
@@ -127,6 +131,11 @@ const ChatBotDemo = () => {
           <PromptInputTextarea
             onChange={(e) => setInput(e.target.value)}
             value={input}
+            ref={(ref) => {
+              if (ref) {
+                ref.focus();
+              }
+            }}
           />
           <PromptInputToolbar>
             <PromptInputTools>

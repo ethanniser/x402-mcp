@@ -3,7 +3,7 @@ import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { createPaymentHeader } from "x402/client";
-import { PaymentRequirementsSchema, Wallet } from "x402/types";
+import { Wallet } from "x402/types";
 import { x402Version, network } from "./shared.js";
 import {
   Tool,
@@ -64,6 +64,9 @@ export interface ClientPaymentOptions {
   maxPaymentValue?: number;
 }
 
+const EvmAddressRegex = /^0x[0-9a-fA-F]{40}$/;
+const EvmSignatureRegex = /^0x[0-9a-fA-F]+$/; // Flexible hex signature validation
+
 export async function withPayment(
   mcpClient: MCPClient,
   options: ClientPaymentOptions
@@ -72,9 +75,25 @@ export async function withPayment(
   const maxPaymentValue = options.maxPaymentValue ?? BigInt(0.1 * 10 ** 6); // 0.10 USDC
   const generatePaymentAuthorizationTool = tool({
     description:
-      "Generate a x402 payment authorization for another tool call which requires payment",
+      "Generate a x402 payment authorization for another tool call which requires payment. Never guess the payment requirements, if you even need to call this its because you already know the payment requirements from another tool call.",
     inputSchema: z.object({
-      paymentRequirements: PaymentRequirementsSchema,
+      paymentRequirements: z.object({
+        scheme: z.literal("exact"),
+        network: z.enum(["base-sepolia", "base"]),
+        maxAmountRequired: z.string().describe("uint256 as string"),
+        resource: z.string().url(),
+        description: z.string(),
+        mimeType: z.string(),
+        outputSchema: z.record(z.any()).optional(),
+        payTo: z.string().regex(EvmAddressRegex),
+        maxTimeoutSeconds: z.number().int(),
+        asset: z.string().regex(EvmAddressRegex),
+        extra: z
+          .any()
+          .describe(
+            "This field is an optional schema-specific object. If the payment requirements specifies it, you *must* include it."
+          ),
+      }),
     }),
     outputSchema: z.object({
       paymentAuthorization: z.string(),
@@ -113,6 +132,8 @@ export async function withPayment(
         chain: network === "base-sepolia" ? baseSepolia : base,
       });
 
+      console.log("hi", input.paymentRequirements);
+
       const paymentHeader = await createPaymentHeader(
         walletClient as unknown as Wallet, // dont know why this is needed
         x402Version,
@@ -149,7 +170,6 @@ export async function withPayment(
                 type: "string",
                 description:
                   "X402Payment authorization, this is optional and should *not* be provided by default. It is only required if the tool requires payment, which can be determined by calling it without this parameter.",
-                optional: true,
               },
             },
           },
