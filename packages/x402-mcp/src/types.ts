@@ -27,7 +27,7 @@ export interface ExtendedServerMethods {
     options: PaymentOptions,
     paramsSchema: Args,
     annotations: ToolAnnotations,
-    cb: ToolCallback<Args>
+    cb: ToolCallback<Args>,
   ): RegisteredTool;
 }
 

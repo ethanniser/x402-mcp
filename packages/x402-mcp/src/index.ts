@@ -5,7 +5,7 @@ import type { ConfigWithPayment, ExtendedMcpServer } from "./types.js";
 type ServerOptions = NonNullable<Parameters<typeof createMcpHandler>[1]>;
 
 function createPaidToolMethod(
-  server: McpServer
+  server: McpServer,
 ): ExtendedMcpServer["paidTool"] {
   const paidTool: ExtendedMcpServer["paidTool"] = (
     name,
@@ -13,7 +13,7 @@ function createPaidToolMethod(
     options,
     paramsSchema,
     annotations,
-    cb
+    cb,
   ) => {
     return server.tool(
       name,
@@ -23,7 +23,7 @@ function createPaidToolMethod(
         ...annotations,
         paymentHint: true,
       },
-      cb
+      cb,
     );
   };
   return paidTool;
@@ -41,7 +41,7 @@ export function createPaidMcpHandler(
     | ((server: ExtendedMcpServer) => Promise<void>)
     | ((server: ExtendedMcpServer) => void),
   serverOptions: ServerOptions,
-  config: ConfigWithPayment
+  config: ConfigWithPayment,
 ): (request: Request) => Promise<Response> {
   // Create the base paid handler
   const paidHandler = createMcpHandler(
@@ -59,7 +59,7 @@ export function createPaidMcpHandler(
       await initializeServer(extendedServer);
     },
     serverOptions,
-    config
+    config,
   );
 
   return paidHandler;

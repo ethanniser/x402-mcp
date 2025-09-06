@@ -19,7 +19,7 @@ const handler = createPaidMcpHandler(
         return {
           content: [{ type: "text", text: randomNumber.toString() }],
         };
-      }
+      },
     );
     server.paidTool(
       "add",
@@ -35,7 +35,7 @@ const handler = createPaidMcpHandler(
         return {
           content: [{ type: "text", text: result.toString() }],
         };
-      }
+      },
     );
     server.tool(
       "hello",
@@ -46,7 +46,7 @@ const handler = createPaidMcpHandler(
       {},
       async (args) => {
         return { content: [{ type: "text", text: `Hello ${args.name}` }] };
-      }
+      },
     );
   },
   {
@@ -58,7 +58,7 @@ const handler = createPaidMcpHandler(
   {
     recipient: process.env.X402_WALLET_ADDRESS as `0x${string}`,
     facilitator,
-  }
+  },
 );
 
 export { handler as GET, handler as POST };

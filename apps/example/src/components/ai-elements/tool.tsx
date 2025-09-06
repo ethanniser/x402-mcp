@@ -61,7 +61,7 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 };
 
 const mapRenderResultTypeToState = (
-  type: RenderOutputResult["type"]
+  type: RenderOutputResult["type"],
 ): ToolUIPart["state"] => {
   if (type === "success") return "output-available";
   if (type === "error") return "output-error";
@@ -83,7 +83,7 @@ export const ToolHeader = ({ className, part, ...props }: ToolHeaderProps) => {
     <CollapsibleTrigger
       className={cn(
         "flex w-full items-center justify-between gap-4 p-3",
-        className
+        className,
       )}
       {...props}
     >
@@ -103,7 +103,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
       "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
-      className
+      className,
     )}
     {...props}
   />
@@ -133,8 +133,8 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
   const errorText = part.errorText
     ? part.errorText
     : renderResult.type === "error"
-    ? JSON.stringify(renderResult.content)
-    : undefined;
+      ? JSON.stringify(renderResult.content)
+      : undefined;
 
   if (!(part.output || errorText)) {
     return null;
@@ -148,7 +148,7 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
       <div
         className={cn(
           "overflow-x-auto rounded-md text-xs [&_table]:w-full",
-          errorText ? "text-destructive" : "bg-muted/50 text-foreground"
+          errorText ? "text-destructive" : "bg-muted/50 text-foreground",
         )}
       >
         {errorText && <div>{errorText}</div>}
@@ -193,7 +193,7 @@ const ToolOutputSchema = z
       z.object({
         type: z.literal("text"),
         text: z.string(),
-      })
+      }),
     ),
     isError: z.boolean().optional(),
   })
