@@ -15,10 +15,12 @@ export interface PaymentOptions {
   price: number; // in USD
 }
 
-export interface ConfigWithPayment extends Config {
+export interface PaymentConfig {
   recipient: Address;
   facilitator: FacilitatorConfig;
 }
+
+export interface ConfigWithPayment extends Config, PaymentConfig {}
 
 export interface ExtendedServerMethods {
   paidTool<Args extends ZodRawShape>(
@@ -27,7 +29,7 @@ export interface ExtendedServerMethods {
     options: PaymentOptions,
     paramsSchema: Args,
     annotations: ToolAnnotations,
-    cb: ToolCallback<Args>,
+    cb: ToolCallback<Args>
   ): RegisteredTool;
 }
 
