@@ -7,12 +7,12 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type ZodRawShape } from "zod";
 import type { createMcpHandler } from "mcp-handler";
 import type { Address } from "viem";
-import { FacilitatorConfig, Money } from "x402/types";
+import { FacilitatorConfig } from "x402/types";
 
 type Config = NonNullable<Parameters<typeof createMcpHandler>[2]>;
 
 export interface PaymentOptions {
-  price: Money;
+  price: number; // in USD
 }
 
 export interface ConfigWithPayment extends Config {

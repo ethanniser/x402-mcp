@@ -7,9 +7,24 @@ type ServerOptions = NonNullable<Parameters<typeof createMcpHandler>[1]>;
 function createPaidToolMethod(
   server: McpServer
 ): ExtendedMcpServer["paidTool"] {
-  return (name, options, paramsSchema, annotations, cb) => {
-    return server.tool(name, paramsSchema, annotations, cb);
+  const paidTool: ExtendedMcpServer["paidTool"] = (
+    name,
+    options,
+    paramsSchema,
+    annotations,
+    cb
+  ) => {
+    return server.tool(
+      name,
+      paramsSchema,
+      {
+        ...annotations,
+        paymentHint: true,
+      },
+      cb
+    );
   };
+  return paidTool;
 }
 
 /**
