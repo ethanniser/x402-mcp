@@ -22,7 +22,6 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "x402-mcp": "workspace:*",
     "ai": "^5.0.26",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -32,10 +31,12 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-syntax-highlighter": "^15.6.6",
+    "shiki": "^3.12.2",
     "streamdown": "^1.1.4",
     "tailwind-merge": "^3.3.1",
     "use-stick-to-bottom": "^1.1.1",
     "viem": "^2.36.0",
+    "x402-mcp": "workspace:*",
     "zod": "^3.25.76"
   },
   "devDependencies": {
