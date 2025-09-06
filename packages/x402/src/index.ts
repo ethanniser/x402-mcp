@@ -9,6 +9,7 @@ function createPaidToolMethod(
 ): ExtendedMcpServer["paidTool"] {
   const paidTool: ExtendedMcpServer["paidTool"] = (
     name,
+    description,
     options,
     paramsSchema,
     annotations,
@@ -16,6 +17,7 @@ function createPaidToolMethod(
   ) => {
     return server.tool(
       name,
+      description,
       paramsSchema,
       {
         ...annotations,
@@ -38,8 +40,8 @@ export function createPaidMcpHandler(
   initializeServer:
     | ((server: ExtendedMcpServer) => Promise<void>)
     | ((server: ExtendedMcpServer) => void),
-  serverOptions?: ServerOptions,
-  config?: ConfigWithPayment
+  serverOptions: ServerOptions,
+  config: ConfigWithPayment
 ): (request: Request) => Promise<Response> {
   // Create the base paid handler
   const paidHandler = createMcpHandler(

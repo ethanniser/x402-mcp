@@ -23,6 +23,7 @@ export interface ConfigWithPayment extends Config {
 export interface ExtendedServerMethods {
   paidTool<Args extends ZodRawShape>(
     name: string,
+    description: string,
     options: PaymentOptions,
     paramsSchema: Args,
     annotations: ToolAnnotations,
