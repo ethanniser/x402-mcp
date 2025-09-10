@@ -7,7 +7,10 @@ export const env = createEnv({
     CDP_API_KEY_ID: z.string(),
     CDP_API_KEY_SECRET: z.string(),
     NETWORK: z.enum(["base-sepolia", "base"]).default("base-sepolia"),
-    URL: z.string().url().default("http://localhost:3000"),
+    URL: z
+      .string()
+      .default("localhost:3000")
+      .transform((url) => `https://${url}`),
   },
 
   /**
