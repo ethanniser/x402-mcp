@@ -99,7 +99,7 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(react@19.1.0)
       viem:
-        specifier: ^2.36.0
+        specifier: ^2.37.3
         version: 2.37.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
       x402-mcp:
         specifier: workspace:*
@@ -141,15 +141,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.5
         version: 1.17.5
-      ai:
-        specifier: ^5.0.33
-        version: 5.0.33(zod@3.25.76)
       mcp-handler:
         specifier: ^1.0.2
         version: 1.0.2(@modelcontextprotocol/sdk@1.17.5)(next@15.5.2(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
-      viem:
-        specifier: ^2.37.3
-        version: 2.37.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
       x402:
         specifier: ^0.5.3
         version: 0.5.3(@tanstack/query-core@5.87.1)(@tanstack/react-query@5.87.1(react@19.1.0))(@types/react@19.1.0)(bufferutil@4.0.9)(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)
@@ -160,9 +154,15 @@ importers:
       '@types/node':
         specifier: ^22.15.3
         version: 22.15.3
+      ai:
+        specifier: ^5.0.33
+        version: 5.0.33(zod@3.25.76)
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      viem:
+        specifier: ^2.37.3
+        version: 2.37.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.76)
 
 packages:
 

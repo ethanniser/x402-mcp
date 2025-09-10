@@ -35,7 +35,7 @@
     "streamdown": "^1.1.4",
     "tailwind-merge": "^3.3.1",
     "use-stick-to-bottom": "^1.1.1",
-    "viem": "^2.36.0",
+    "viem": "^2.37.3",
     "x402-mcp": "workspace:*",
     "zod": "^3.25.76"
   },
