@@ -28,7 +28,7 @@ const handler = createPaidMcpHandler(
     );
   },
   {
-    recipient: process.env.X402_WALLET_ADDRESS,
+    recipient: process.env.WALLET_ADDRESS,
   }
 );
 
@@ -42,9 +42,8 @@ import { withPayment } from "x402-mcp";
 
 const mcpClient = await createMCPClient({
   transport: new StreamableHTTPClientTransport(url),
-}).then((client) =>
-  withPayment(client, { privateKey: process.env.X402_PRIVATE_KEY })
-);
+}).then((client) => withPayment(client, { account: process.env.PRIVATE_KEY }));
+
 const tools = await mcpClient.tools();
 
 const result = streamText({

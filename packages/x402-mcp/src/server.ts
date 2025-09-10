@@ -13,7 +13,7 @@ import {
 import { processPriceToAtomicAmount } from "x402/shared";
 import { exact } from "x402/schemes";
 import { useFacilitator } from "x402/verify";
-import { network, x402Version } from "./shared.js";
+import { x402Version } from "./shared.js";
 import { type ZodRawShape } from "zod";
 import type { Address } from "viem";
 import z from "zod";
@@ -27,6 +27,7 @@ export interface ServerPaymentOptions {
 export interface ServerPaymentConfig {
   recipient: Address;
   facilitator: FacilitatorConfig;
+  network: "base-sepolia" | "base";
 }
 
 export interface ConfigWithPayment extends Config, ServerPaymentConfig {}
@@ -71,7 +72,7 @@ function createPaidToolMethod(
 
       const atomicAmountForAsset = processPriceToAtomicAmount(
         options.price,
-        network
+        config.network
       );
       if ("error" in atomicAmountForAsset) {
         throw new Error("Failed to process price to atomic amount");
@@ -79,7 +80,7 @@ function createPaidToolMethod(
       const { maxAmountRequired, asset } = atomicAmountForAsset;
       const paymentRequirements: PaymentRequirements = {
         scheme: "exact",
-        network,
+        network: config.network,
         maxAmountRequired,
         payTo: config.recipient,
         asset: asset.address,

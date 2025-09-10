@@ -68,8 +68,6 @@ const ChatBotDemo = () => {
     }
   };
 
-  console.log(messages);
-
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
       <div className="flex flex-col h-full">
@@ -107,8 +105,12 @@ const ChatBotDemo = () => {
                           <ToolContent>
                             {/* @ts-expect-error */}
                             <ToolInput input={part.input} />
-                            {/* @ts-expect-error */}
-                            <ToolOutput part={part} />
+                            <ToolOutput
+                              // @ts-expect-error
+                              part={part}
+                              // @ts-expect-error
+                              network={message.metadata?.network}
+                            />
                           </ToolContent>
                         </Tool>
                       );

@@ -1,6 +1,10 @@
 import { createPaidMcpHandler } from "x402-mcp";
 import z from "zod";
 import { facilitator } from "@coinbase/x402";
+import { env } from "@/lib/env";
+import { getOrCreateSellerAccount } from "@/lib/accounts";
+
+const sellerAccount = await getOrCreateSellerAccount();
 
 const handler = createPaidMcpHandler(
   (server) => {
@@ -55,8 +59,9 @@ const handler = createPaidMcpHandler(
     },
   },
   {
-    recipient: process.env.X402_WALLET_ADDRESS as `0x${string}`,
+    recipient: sellerAccount.address,
     facilitator,
+    network: env.NETWORK,
   }
 );
 

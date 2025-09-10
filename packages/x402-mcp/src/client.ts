@@ -1,9 +1,9 @@
 import { z, ZodType } from "zod";
-import { createWalletClient, http, type Account } from "viem";
+import { Address, createWalletClient, http, type Account } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { createPaymentHeader } from "x402/client";
 import { Wallet } from "x402/types";
-import { x402Version, network } from "./shared.js";
+import { x402Version } from "./shared.js";
 import {
   Tool,
   ToolCallOptions,
@@ -59,12 +59,12 @@ async function callToolWithPayment(
 }
 
 export interface ClientPaymentOptions {
-  account: Account;
+  account: Account | Address;
   maxPaymentValue?: number;
+  network: "base-sepolia" | "base";
 }
 
 const EvmAddressRegex = /^0x[0-9a-fA-F]{40}$/;
-const EvmSignatureRegex = /^0x[0-9a-fA-F]+$/; // Flexible hex signature validation
 
 export async function withPayment(
   mcpClient: MCPClient,
@@ -111,14 +111,14 @@ export async function withPayment(
         throw new Error("Only exact scheme is supported");
       }
 
-      if (input.paymentRequirements.network !== network) {
+      if (input.paymentRequirements.network !== options.network) {
         throw new Error("Unsupported payment network");
       }
 
       const walletClient = createWalletClient({
         account: options.account,
         transport: http(),
-        chain: network === "base-sepolia" ? baseSepolia : base,
+        chain: options.network === "base-sepolia" ? baseSepolia : base,
       });
 
       const paymentHeader = await createPaymentHeader(

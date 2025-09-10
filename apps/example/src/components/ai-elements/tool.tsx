@@ -126,9 +126,15 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 
 export type ToolOutputProps = ComponentProps<"div"> & {
   part: ToolUIPart | DynamicToolUIPart;
+  network?: "base-sepolia" | "base";
 };
 
-export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
+export const ToolOutput = ({
+  className,
+  part,
+  network,
+  ...props
+}: ToolOutputProps) => {
   const renderResult =
     part.type === "dynamic-tool"
       ? renderRawOutput({ output: part.output })
@@ -175,9 +181,7 @@ export const ToolOutput = ({ className, part, ...props }: ToolOutputProps) => {
           <div className="flex items-center gap-2">
             <Link
               href={`https://${
-                process.env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? "sepolia."
-                  : ""
+                network === "base-sepolia" ? "sepolia." : ""
                 // @ts-expect-error
               }basescan.org/tx/${part.output._meta["x402.payment-response"].transaction}`}
               target="_blank"
