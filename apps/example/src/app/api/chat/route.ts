@@ -7,6 +7,7 @@ import { experimental_createMCPClient as createMCPClient } from "ai";
 import { withPayment } from "x402-mcp";
 import { tool } from "ai";
 import z from "zod";
+import { Account, privateKeyToAccount } from "viem/accounts";
 
 const url = new URL(
   "/mcp",
@@ -15,15 +16,19 @@ const url = new URL(
     : "http://localhost:3000"
 );
 
+async function getOrCreateAccount(): Promise<Account> {
+  return privateKeyToAccount(process.env.X402_PRIVATE_KEY as `0x${string}`);
+}
+
 export const POST = async (request: Request) => {
   const { messages, model }: { messages: UIMessage[]; model: string } =
     await request.json();
 
+  const account = await getOrCreateAccount();
+
   const mcpClient = await createMCPClient({
     transport: new StreamableHTTPClientTransport(url),
-  }).then((client) =>
-    withPayment(client, { privateKey: process.env.X402_PRIVATE_KEY as string })
-  );
+  }).then((client) => withPayment(client, { account }));
   const tools = await mcpClient.tools();
 
   const result = streamText({

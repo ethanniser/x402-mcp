@@ -1,6 +1,5 @@
 import { z, ZodType } from "zod";
-import { createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { createWalletClient, http, type Account } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { createPaymentHeader } from "x402/client";
 import { Wallet } from "x402/types";
@@ -60,7 +59,7 @@ async function callToolWithPayment(
 }
 
 export interface ClientPaymentOptions {
-  privateKey: string;
+  account: Account;
   maxPaymentValue?: number;
 }
 
@@ -116,18 +115,8 @@ export async function withPayment(
         throw new Error("Unsupported payment network");
       }
 
-      if (!options.privateKey) {
-        throw new Error("Private key is required for payment authorization");
-      }
-
-      // Ensure private key is properly formatted (with 0x prefix)
-      const formattedPrivateKey = options.privateKey.startsWith("0x")
-        ? options.privateKey
-        : `0x${options.privateKey}`;
-
-      const account = privateKeyToAccount(formattedPrivateKey as `0x${string}`);
       const walletClient = createWalletClient({
-        account,
+        account: options.account,
         transport: http(),
         chain: network === "base-sepolia" ? baseSepolia : base,
       });
