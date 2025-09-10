@@ -1,5 +1,12 @@
 import { z, ZodType } from "zod";
-import { Address, createWalletClient, http, type Account } from "viem";
+import {
+  Address,
+  createPublicClient,
+  createWalletClient,
+  http,
+  parseAbi,
+  type Account,
+} from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { createPaymentHeader } from "x402/client";
 import { Wallet } from "x402/types";
@@ -66,12 +73,60 @@ export interface ClientPaymentOptions {
 
 const EvmAddressRegex = /^0x[0-9a-fA-F]{40}$/;
 
+const networkToChain = {
+  "base-sepolia": baseSepolia,
+  base: base,
+} as const;
+
+const networkToUsdcAddress = {
+  "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+} as const;
+
 export async function withPayment(
   mcpClient: MCPClient,
   options: ClientPaymentOptions
 ): Promise<MCPClient> {
+  const walletClient = createWalletClient({
+    account: options.account,
+    transport: http(),
+    chain: networkToChain[options.network],
+  });
+  const publicClient = createPublicClient({
+    chain: networkToChain[options.network],
+    transport: http(),
+  });
+
   const client = mcpClient as MCPClientInternal;
   const maxPaymentValue = options.maxPaymentValue ?? BigInt(0.1 * 10 ** 6); // 0.10 USDC
+
+  const viewAccountBalanceTool = tool({
+    description: "View the balance of the account",
+    inputSchema: z.object({}),
+    outputSchema: z
+      .object({
+        amount: z.string().describe("uint256 as string"),
+        decimals: z.number().int(),
+      })
+      .describe("The balance of the account in USDC"),
+    execute: async () => {
+      const address =
+        typeof options.account === "object"
+          ? options.account.address
+          : options.account;
+      const result = await publicClient.readContract({
+        address: networkToUsdcAddress[options.network],
+        abi: parseAbi(["function balanceOf(address) view returns (uint256)"]),
+        functionName: "balanceOf",
+        args: [address],
+      });
+      return {
+        amount: result.toString(),
+        decimals: 6,
+      };
+    },
+  });
+
   const generatePaymentAuthorizationTool = tool({
     description:
       "Generate a x402 payment authorization for another tool call which requires payment. Never guess the payment requirements, if you even need to call this its because you already know the payment requirements from another tool call.",
@@ -114,12 +169,6 @@ export async function withPayment(
       if (input.paymentRequirements.network !== options.network) {
         throw new Error("Unsupported payment network");
       }
-
-      const walletClient = createWalletClient({
-        account: options.account,
-        transport: http(),
-        chain: options.network === "base-sepolia" ? baseSepolia : base,
-      });
 
       const paymentHeader = await createPaymentHeader(
         walletClient as unknown as Wallet, // dont know why this is needed
@@ -191,6 +240,7 @@ export async function withPayment(
     return {
       ...wrappedToolsMap,
       generatePaymentAuthorization: generatePaymentAuthorizationTool,
+      viewAccountBalance: viewAccountBalanceTool,
     } as any;
   };
 

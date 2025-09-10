@@ -22,6 +22,7 @@ import {
 import { useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { Response } from "@/components/ai-elements/response";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 
 import {
   Reasoning,
@@ -47,11 +48,22 @@ const models = [
     value: "google/gemini-2.0-flash-lite",
   },
 ];
+const suggestions = {
+  "Use a paid tool":
+    "Generate a random number between 1 and 10, then add it to 5.",
+  "What's my account balance?": "Check your account balance.",
+  "Use an unpaid remotetool":
+    "Please greet the user with 'hello-remote' by the name: 'user'",
+  "Use an unpaid local tool":
+    "Please greet the user with 'hello-local' by the name: 'user'",
+};
 
 const ChatBotDemo = () => {
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string>(models[0].value);
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    onError: (error) => console.error(error),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +78,17 @@ const ChatBotDemo = () => {
       );
       setInput("");
     }
+  };
+
+  const handleSuggestionClick = (suggestion: keyof typeof suggestions) => {
+    sendMessage(
+      { text: suggestions[suggestion] },
+      {
+        body: {
+          model: model,
+        },
+      }
+    );
   };
 
   return (
@@ -122,9 +145,24 @@ const ChatBotDemo = () => {
               </Message>
             ))}
             {status === "submitted" && <Loader />}
+            {status === "error" && <div>Something went wrong</div>}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
+
+        <Suggestions className="justify-center">
+          {Object.keys(suggestions).map((suggestion) => (
+            <Suggestion
+              key={suggestion}
+              suggestion={suggestion}
+              onClick={() =>
+                handleSuggestionClick(suggestion as keyof typeof suggestions)
+              }
+              variant="outline"
+              size="sm"
+            />
+          ))}
+        </Suggestions>
 
         <PromptInput onSubmit={handleSubmit} className="mt-4">
           <PromptInputTextarea
