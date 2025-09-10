@@ -7,7 +7,8 @@ import { experimental_createMCPClient as createMCPClient } from "ai";
 import { withPayment } from "x402-mcp";
 import { tool } from "ai";
 import z from "zod";
-import { Account, privateKeyToAccount } from "viem/accounts";
+import { Account, toAccount } from "viem/accounts";
+import { CdpClient } from "@coinbase/cdp-sdk";
 
 const url = new URL(
   "/mcp",
@@ -16,8 +17,32 @@ const url = new URL(
     : "http://localhost:3000"
 );
 
+const cdp = new CdpClient();
+
+const accountName = "account-1";
+const network = "base-sepolia";
+
 async function getOrCreateAccount(): Promise<Account> {
-  return privateKeyToAccount(process.env.X402_PRIVATE_KEY as `0x${string}`);
+  const account = await cdp.evm.getOrCreateAccount({
+    name: accountName,
+  });
+  const balances = await account.listTokenBalances({
+    network,
+  });
+
+  const usdcBalance = balances.balances.find(
+    (balance) => balance.token.symbol === "USDC"
+  );
+  // if under $0.50, request more
+  if (!usdcBalance || Number(usdcBalance.amount) < 500000) {
+    await cdp.evm.requestFaucet({
+      address: account.address,
+      network,
+      token: "usdc",
+    });
+  }
+
+  return toAccount(account);
 }
 
 export const POST = async (request: Request) => {
