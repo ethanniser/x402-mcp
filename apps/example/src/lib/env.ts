@@ -6,11 +6,8 @@ export const env = createEnv({
     CDP_WALLET_SECRET: z.string(),
     CDP_API_KEY_ID: z.string(),
     CDP_API_KEY_SECRET: z.string(),
-    NETWORK: z
-      .enum(["base-sepolia", "base"])
-      .optional()
-      .default("base-sepolia"),
-    URL: z.string().url().optional().default("http://localhost:3000"),
+    NETWORK: z.enum(["base-sepolia", "base"]).default("base-sepolia"),
+    URL: z.string().url().default("http://localhost:3000"),
   },
 
   /**
