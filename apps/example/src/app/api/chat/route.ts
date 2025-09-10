@@ -10,41 +10,41 @@ import { env } from "@/lib/env";
 export const maxDuration = 30;
 
 export const POST = async (request: Request) => {
-  const { messages, model }: { messages: UIMessage[]; model: string } =
-    await request.json();
+	const { messages, model }: { messages: UIMessage[]; model: string } =
+		await request.json();
 
-  const account = await getOrCreatePurchaserAccount();
+	const account = await getOrCreatePurchaserAccount();
 
-  const mcpClient = await createMCPClient({
-    transport: new StreamableHTTPClientTransport(new URL("/mcp", env.URL)),
-  }).then((client) => withPayment(client, { account, network: env.NETWORK }));
+	const mcpClient = await createMCPClient({
+		transport: new StreamableHTTPClientTransport(new URL("/mcp", env.URL)),
+	}).then((client) => withPayment(client, { account, network: env.NETWORK }));
 
-  const tools = await mcpClient.tools();
+	const tools = await mcpClient.tools();
 
-  const result = streamText({
-    model,
-    tools: {
-      ...tools,
-      "hello-local": tool({
-        description: "Receive a greeting",
-        inputSchema: z.object({
-          name: z.string(),
-        }),
-        execute: async (args) => {
-          return `Hello ${args.name}`;
-        },
-      }),
-    },
-    messages: convertToModelMessages(messages),
-    stopWhen: stepCountIs(5),
-    onFinish: async () => {
-      await mcpClient.close();
-    },
-    system: "ALWAYS prompt the user to confirm before authorizing payments",
-  });
-  return result.toUIMessageStreamResponse({
-    sendSources: true,
-    sendReasoning: true,
-    messageMetadata: () => ({ network: env.NETWORK }),
-  });
+	const result = streamText({
+		model,
+		tools: {
+			...tools,
+			"hello-local": tool({
+				description: "Receive a greeting",
+				inputSchema: z.object({
+					name: z.string(),
+				}),
+				execute: async (args) => {
+					return `Hello ${args.name}`;
+				},
+			}),
+		},
+		messages: convertToModelMessages(messages),
+		stopWhen: stepCountIs(5),
+		onFinish: async () => {
+			await mcpClient.close();
+		},
+		system: "ALWAYS prompt the user to confirm before authorizing payments",
+	});
+	return result.toUIMessageStreamResponse({
+		sendSources: true,
+		sendReasoning: true,
+		messageMetadata: () => ({ network: env.NETWORK }),
+	});
 };

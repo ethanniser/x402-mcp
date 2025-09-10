@@ -1,36 +1,36 @@
 {
-  "name": "x402-mcp",
-  "version": "0.0.3",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
-    }
-  },
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "dev": "tsc --watch",
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "@types/node": "^22.15.3",
-    "typescript": "5.9.2",
-    "viem": "^2.37.3",
-    "ai": "^5.0.33"
-  },
-  "peerDependencies": {
-    "viem": ">=2.37.0",
-    "ai": ">=5.0.0"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.5",
-    "mcp-handler": "^1.0.2",
-    "x402": "^0.5.3",
-    "zod": "^3"
-  }
+	"name": "x402-mcp",
+	"version": "0.0.3",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./*": {
+			"types": "./dist/*.d.ts",
+			"default": "./dist/*.js"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"dev": "tsc --watch",
+		"build": "tsc"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.2",
+		"viem": "^2.37.3",
+		"ai": "^5.0.33"
+	},
+	"peerDependencies": {
+		"viem": ">=2.37.0",
+		"ai": ">=5.0.0"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.17.5",
+		"mcp-handler": "^1.0.2",
+		"x402": "^0.5.3",
+		"zod": "^3"
+	}
 }
