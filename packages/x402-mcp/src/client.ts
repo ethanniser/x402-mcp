@@ -101,7 +101,7 @@ export async function withPayment(
 	const maxPaymentValue = options.maxPaymentValue ?? BigInt(0.1 * 10 ** 6); // 0.10 USDC
 
 	const viewAccountBalanceTool = tool({
-		description: "View the balance of the account",
+		description: "View the balance of the account in USDC",
 		inputSchema: z.object({}),
 		outputSchema: z
 			.object({
