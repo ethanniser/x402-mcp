@@ -101,12 +101,16 @@ export async function withPayment(
 	const maxPaymentValue = options.maxPaymentValue ?? BigInt(0.1 * 10 ** 6); // 0.10 USDC
 
 	const viewAccountBalanceTool = tool({
-		description: "View the balance of the account in USDC. (USDC has 6 decimals, always divide by 10**6 to get the amount in USDC)",
+		description:
+			"View the balance of the account in USDC. (USDC has 6 decimals, always divide by 10**6 to get the amount in USDC)",
 		inputSchema: z.object({}),
-		outputSchema: z
-			.object({
-				amount: z.string().describe("uint256 as string -  balance of the account in USDC. (USDC has 6 decimals, always divide by 10**6 to get the amount in USDC)"),
-      }),
+		outputSchema: z.object({
+			amount: z
+				.string()
+				.describe(
+					"uint256 as string -  balance of the account in USDC. (USDC has 6 decimals, always divide by 10**6 to get the amount in USDC)",
+				),
+		}),
 		execute: async () => {
 			const address =
 				typeof options.account === "object"
@@ -131,7 +135,11 @@ export async function withPayment(
 			paymentRequirements: z.object({
 				scheme: z.literal("exact"),
 				network: z.enum(["base-sepolia", "base"]),
-				maxAmountRequired: z.string().describe("uint256 as string. if you need to display this to the user, divide by 10**6 to get the amount in USDC"),
+				maxAmountRequired: z
+					.string()
+					.describe(
+						"uint256 as string. if you need to display this to the user, divide by 10**6 to get the amount in USDC",
+					),
 				resource: z.string().url(),
 				description: z.string(),
 				mimeType: z.string(),
