@@ -1,7 +1,12 @@
 {
 	"name": "x402-mcp",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ethanniser/x402-mcp"
+	},
+	"homepage": "https://vercel.com/blog/introducing-x402-mcp-open-protocol-payments-for-mcp-tools",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
