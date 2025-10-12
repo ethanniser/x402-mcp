@@ -24,10 +24,26 @@ export interface ServerPaymentOptions {
 	price: number; // in USD
 }
 
+export const BACKOFF_STRATEGIES = {
+	LINEAR: 'linear',
+	EXPONENTIAL: 'exponential',
+} as const;
+
+export type BackoffStrategy = typeof BACKOFF_STRATEGIES[keyof typeof BACKOFF_STRATEGIES];
+
+export interface PaymentRetryConfig {
+	maxRetries?: number;
+	initialDelayMs?: number;
+	backoff?: BackoffStrategy;
+	maxDelayMs?: number;
+	timeoutMs?: number;
+}
+
 export interface ServerPaymentConfig {
 	recipient: Address;
 	facilitator: FacilitatorConfig;
 	network: "base-sepolia" | "base";
+	retry?: PaymentRetryConfig;
 }
 
 export interface ConfigWithPayment extends Config, ServerPaymentConfig {}
@@ -44,8 +60,74 @@ export interface PaymentServerMethods {
 }
 
 export type PaymentMcpServer = McpServer & PaymentServerMethods;
-
 type ServerOptions = NonNullable<Parameters<typeof createMcpHandler>[1]>;
+
+function createVerifyPaymentWithRetry(
+	facilitatorConfig: FacilitatorConfig,
+	retryConfig: PaymentRetryConfig = {}
+) {
+	const {
+		maxRetries = 5,
+		initialDelayMs = 1000,
+		backoff = BACKOFF_STRATEGIES.EXPONENTIAL,
+		maxDelayMs = 16_000,
+		timeoutMs = 30_000,
+	} = retryConfig;
+
+	return async function verifyPaymentWithRetry(
+		decodedPayment: PaymentPayload,
+		paymentRequirements: PaymentRequirements,
+	): Promise<{ isValid: boolean; invalidReason?: string; payer?: string }> {
+		const startTime = performance.now();
+		const { verify } = useFacilitator(facilitatorConfig);
+
+		for (let attempt = 0; attempt < maxRetries; attempt++) {
+			// Early exit if we're running out of time
+			if (performance.now() - startTime > timeoutMs) {
+				return {
+					isValid: false,
+					invalidReason: `Payment verification timeout after ${timeoutMs}ms`,
+				};
+			}
+
+			try {
+				const verification = await verify(decodedPayment, paymentRequirements);
+				if (verification.isValid) {
+					return verification;
+				}
+
+				// If this is the last attempt, return the final result
+				if (attempt === maxRetries - 1) {
+					return verification;
+				}
+
+				// Calculate delay for next retry
+				let delay: number;
+				if (backoff === BACKOFF_STRATEGIES.EXPONENTIAL) {
+					delay = Math.min(initialDelayMs * Math.pow(2, attempt), maxDelayMs);
+				} else {
+					delay = Math.min(initialDelayMs + (attempt * initialDelayMs), maxDelayMs);
+				}
+
+				// Only add delay if we have another attempt coming
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} catch (error) {
+				// If this is the last attempt, throw the error
+				if (attempt === maxRetries - 1) {
+					throw error;
+				}
+
+				// Wait before next retry attempt
+				await new Promise(resolve => setTimeout(resolve, initialDelayMs));
+			}
+		}
+
+		return {
+			isValid: false,
+			invalidReason: `Payment verification failed after ${maxRetries} attempts`,
+		};
+	};
+}
 
 function createPaidToolMethod(
 	server: McpServer,
@@ -69,6 +151,11 @@ function createPaidToolMethod(
 				} as const;
 			};
 			const payment = extra._meta?.["x402/payment"];
+
+			// Create verification function based on retry configuration
+			const verifyPayment = config.retry
+				? createVerifyPaymentWithRetry(config.facilitator, config.retry)
+				: verify;
 
 			const atomicAmountForAsset = processPriceToAtomicAmount(
 				options.price,
@@ -111,7 +198,7 @@ function createPaidToolMethod(
 				}) as any; // I genuinely dont why this is needed
 			}
 
-			const verification = await verify(decodedPayment, paymentRequirements);
+			const verification = await verifyPayment(decodedPayment, paymentRequirements);
 			if (!verification.isValid) {
 				return makeErrorResponse({
 					x402Version,
