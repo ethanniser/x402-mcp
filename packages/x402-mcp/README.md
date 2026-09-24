@@ -57,3 +57,33 @@ const result = streamText({
   system: "ALWAYS prompt the user to confirm before authorizing payments",
 });
 ```
+
+### Optional pre-sign authorization
+
+Use `preSignAuthorization` to run an external policy check immediately before
+the x402 payment is signed. Only `ALLOW` continues. `BLOCK`,
+`REQUIRE_APPROVAL`, errors, timeouts, and malformed responses stop the flow
+before the wallet signs anything.
+
+```ts
+const guardedClient = await withPayment(client, {
+  account,
+  network: "base",
+  preSignAuthorization: {
+    timeoutMs: 3_000,
+    check: async ({ paymentRequirements, signal }) => {
+      const response = await fetch("https://policy.example.com/check", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(paymentRequirements),
+        signal,
+      });
+
+      return response.json();
+    },
+  },
+});
+```
+
+The callback receives payment requirements and an abort signal. It never
+receives the wallet, private key, or signed payment header.

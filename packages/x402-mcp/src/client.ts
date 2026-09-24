@@ -34,6 +34,16 @@ import {
 import { createConnectedClient } from "x402/types";
 import { RpcDevnet, SolanaRpcApiDevnet, RpcMainnet, SolanaRpcApiMainnet } from '@solana/kit';
 import { getUsdcAddress } from "x402/shared/evm";
+import {
+	authorizeBeforeSigning,
+	type PreSignAuthorizationOptions,
+} from "./pre-sign-authorization.js";
+
+export type {
+	PreSignAuthorizationDecision,
+	PreSignAuthorizationOptions,
+	PreSignAuthorizationRequest,
+} from "./pre-sign-authorization.js";
 
 
 interface MCPClientInternal extends MCPClient {
@@ -82,15 +92,22 @@ async function callToolWithPayment(
 	});
 }
 
-export interface EvmClientPaymentOptions {
-	account: MultiNetworkSigner["evm"] | `0x${string}`;
+interface BaseClientPaymentOptions {
 	maxPaymentValue?: number;
+	/**
+	 * Optional policy check invoked immediately before a payment is signed.
+	 * Errors, timeouts and malformed responses fail closed.
+	 */
+	preSignAuthorization?: PreSignAuthorizationOptions;
+}
+
+export interface EvmClientPaymentOptions extends BaseClientPaymentOptions {
+	account: MultiNetworkSigner["evm"] | `0x${string}`;
 	network: EvmNetwork;
 }
 
-export interface SvmClientPaymentOptions {
+export interface SvmClientPaymentOptions extends BaseClientPaymentOptions {
 	account: MultiNetworkSigner["svm"];
-	maxPaymentValue?: number;
 	network: SvmNetwork;
 }
 
@@ -218,7 +235,7 @@ export async function withPayment(
 		outputSchema: z.object({
 			paymentAuthorization: z.string(),
 		}),
-		execute: async (input) => {
+			execute: async (input) => {
 			const maxAmountRequired = BigInt(
 				input.paymentRequirements.maxAmountRequired,
 			);
@@ -235,6 +252,12 @@ export async function withPayment(
 			if (input.paymentRequirements.network !== options.network) {
 				throw new Error("Unsupported payment network");
 			}
+
+			await authorizeBeforeSigning(
+				options.preSignAuthorization,
+				x402Version,
+				input.paymentRequirements,
+			);
 
 			const paymentHeader = await createPaymentHeader(
 				options.account as MultiNetworkSigner["evm"] | MultiNetworkSigner["svm"],

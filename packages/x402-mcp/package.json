@@ -21,7 +21,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "pnpm build && node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
